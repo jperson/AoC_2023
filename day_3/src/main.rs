@@ -7,15 +7,15 @@ fn main() {
     let lines: Result<Vec<_>, std::io::Error> = BufReader::new(file).lines().into_iter().collect();
 
     if let Ok(lns) = lines {
-        let adj: Vec<Vec<u32>> = find_adjacent(lns.clone());
+        let adj: Vec<Vec<u32>> = find_adjacent(lns);
 
         let mut sum: u32 = 0;
         let mut prod: u32 = 0;
 
-        for v in adj.into_iter() {
-            sum += v.clone().into_iter().sum::<u32>();
+        for v in adj.iter() {
+            sum += v.iter().sum::<u32>();
             if v.len() == 2 {
-                prod += v.into_iter().product::<u32>()
+                prod += v.iter().product::<u32>()
             }
         }
 
@@ -24,36 +24,36 @@ fn main() {
 }
 
 fn find_adjacent(lines: Vec<String>) -> Vec<Vec<u32>> {
-    let markers: Vec<Vec<usize>> = lines.clone().into_iter().map(|s| find_marker(&s)).collect();
-    let parts: Vec<Vec<PartNum>> = lines.clone().into_iter().map(|s| find_range(&s)).collect();
+    let markers: Vec<Vec<usize>> = lines.iter().map(|s| find_marker(&s)).collect();
+    let parts: Vec<Vec<PartNum>> = lines.iter().map(|s| find_range(&s)).collect();
 
     let mut adj: Vec<Vec<u32>> = Vec::new();
 
     for (i, ms) in markers.into_iter().enumerate() {
-        for m in ms.into_iter() {
+        for m in ms.iter() {
             let mut madj: Vec<u32> = Vec::new();
 
             if i > 0 {
-                for p in parts[i - 1].clone() {
-                    if p.start == m - 1 || p.start == m || p.start == m + 1 {
+                for p in parts[i - 1].iter() {
+                    if p.start == m - 1 || p.start == *m || p.start == m + 1 {
                         madj.push(p.part_num);
-                    } else if p.end == m - 1 || p.end == m || p.end == m + 1 {
+                    } else if p.end == m - 1 || p.end == *m || p.end == m + 1 {
                         madj.push(p.part_num);
                     }
                 }
             }
 
-            for p in parts[i].clone() {
+            for p in parts[i].iter() {
                 if p.start == m + 1 || p.end == m - 1 {
                     madj.push(p.part_num);
                 }
             }
 
             if i < lines.len() {
-                for p in parts[i + 1].clone() {
-                    if p.start == m - 1 || p.start == m || p.start == m + 1 {
+                for p in parts[i + 1].iter() {
+                    if p.start == m - 1 || p.start == *m || p.start == m + 1 {
                         madj.push(p.part_num);
-                    } else if p.end == m - 1 || p.end == m || p.end == m + 1 {
+                    } else if p.end == m - 1 || p.end == *m || p.end == m + 1 {
                         madj.push(p.part_num);
                     }
                 }
@@ -123,7 +123,6 @@ mod tests {
     use crate::find_range;
     use crate::PartNum;
 
-    /// .
     #[test]
     fn test_parse_schematic() {
         let schematic = vec![
@@ -139,7 +138,7 @@ mod tests {
             String::from(".664.598.."),
         ];
 
-        let s: Vec<Vec<PartNum>> = schematic.into_iter().map(|s| find_range(&s)).collect();
+        let s: Vec<Vec<PartNum>> = schematic.iter().map(|s| find_range(&s)).collect();
         println!("{:?}", s[2]);
     }
 }

@@ -69,23 +69,48 @@ fn min_location(seeds: &Vec<u64>, maps: &Data) -> u64 {
 }
 
 fn min_location2(seeds: &Vec<u64>, maps: &Data) -> u64 {
-    let mut min_location = u64::MAX;
-    for cs in seeds.chunks(2) {
-        for s in 0..cs[1] {
-            let soil = lookup(cs[0] + s, &maps.seed_to_soil);
-            let fertilizer = lookup(soil, &maps.soil_to_fertilizer);
-            let water = lookup(fertilizer, &maps.fertilizer_to_water);
-            let light = lookup(water, &maps.water_to_light);
-            let temperature = lookup(light, &maps.light_to_temperature);
-            let humidity = lookup(temperature, &maps.temperature_to_humidity);
-            let location = lookup(humidity, &maps.humidity_to_location);
+    let mut sranges: Vec<(u64, u64)> = seeds.chunks(2).map(|v| (v[0], v[0] + v[1])).collect();
+    let mranges = vec![
+        maps.seed_to_soil.clone(),
+        maps.soil_to_fertilizer.clone(),
+        maps.fertilizer_to_water.clone(),
+        maps.water_to_light.clone(),
+        maps.light_to_temperature.clone(),
+        maps.temperature_to_humidity.clone(),
+        maps.humidity_to_location.clone(),
+    ];
 
-            if location < min_location {
-                min_location = location;
+    for m in mranges.iter() {
+        let mut locs: Vec<(u64, u64)> = Vec::new();
+
+        while let Some((s, e)) = sranges.pop() {
+            let mut found: bool = false;
+
+            for (dest, start, c) in m.into_iter() {
+                let os = u64::max(s, *start);
+                let oe = u64::min(e, *start + c);
+
+                if os < oe {
+                    locs.push((os - start + dest, oe - start + dest));
+                    if os > s {
+                        sranges.push((s, os));
+                    }
+                    if e < oe {
+                        sranges.push((oe, e));
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                locs.push((s, e));
             }
         }
+        sranges = locs.clone();
     }
-    return min_location;
+
+    sranges.sort();
+    return sranges[0].0;
 }
 
 fn lookup(input: u64, lookup: &Vec<(u64, u64, u64)>) -> u64 {
